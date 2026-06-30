@@ -2,43 +2,6 @@
 
 skinparam classAttributeIconSize 0
 
-struct AttackDecaySustain{
-    -attackEnd : Seconds
-    -decayEnd : Seconds
-}
-
-abstract class Wave {
-    -vol : int
-    -ads : AttackDecaySustain
-    -tanh : int
-    -clip : int
-
-}
-Wave "1" *-- "1" AttackDecaySustain
-
-class Sin{
-
-    +Sin(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
-}
-Wave <|.. Sin
-
-class Square{
-
-    +Square(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
-}
-Wave <|.. Square
-
-class Saw{
-
-    +Saw(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
-}
-Wave <|.. Saw
-
-class WhiteNoise{
-
-    +WhiteNoise(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
-}
-Wave <|.. WhiteNoise
 
 enum Pitch {
     A
@@ -56,47 +19,134 @@ enum Pitch {
 }
 
 class Note {
-    +pitchClass : PitchClass
-    +octave : Int
-    +duration: number
+    -pitch : Pitch
+    -octave : Int
+    -duration : Double
     --
-    +toString() : String
-    +fromString(value : String) : Note
-}
-Note "1" *-- "1" Pitch 
-
-class Measure{
-    +notes : Notes
-    --
-    +toString() : String
-    +fromString(value : String) : Measure
-    
+    +toFrequency() : Double
 }
 
-Measure "1" *-- "1..*" Note 
+Note "1" *-- "1" Pitch
 
+class Measure {
+    -notes : List<Note>
+}
 
-class ChannelSettings{
-    +settings:Wave
-    +measure: Measure[]
-    --
-    +toString() : String
-    +fromString(value : String) : ChannelSettings
+Measure "1" *-- "1..*" Note
+
+class ChannelSettings {
+    -source : AudioSource
+    -measures : List<Measure>
 }
 
 ChannelSettings "1" *-- "1..*" Measure
-ChannelSettings "1" *-- "1" Wave
 
 class AudioSettings {
-    +channelSettings: ChannelSettings[]
-    +sampleRate: int
-    +beatsPerMeasure: int
-    +tempo
-    --
-    +toString() : String
-    +fromString(value : String) : AudioSettings
+    -channels : List<ChannelSettings>
+    -sampleRate : Int
+    -beatsPerMeasure : Int
+    -tempo : Int
 }
+
 AudioSettings "1" *-- "1..*" ChannelSettings
 
+
+'========================
+' STRATEGY PATTERN
+'========================
+
+interface AudioSource {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+interface WaveStrategy {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+AudioSource <|-- WaveStrategy
+
+class SinWave {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+class SquareWave {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+class SawWave {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+class WhiteNoiseWave {
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+WaveStrategy <|.. SinWave
+WaveStrategy <|.. SquareWave
+WaveStrategy <|.. SawWave
+WaveStrategy <|.. WhiteNoiseWave
+
+
+'========================
+' DECORATOR PATTERN
+'========================
+
+abstract class EffectDecorator {
+    #source : AudioSource
+    --
+    +generateSample(time : Double, frequency : Double) : Double
+}
+
+AudioSource <|.. EffectDecorator
+EffectDecorator *-- AudioSource
+
+class VolumeEffect {
+    -level : Double
+}
+
+class ADSEffect {
+    -attackEnd : Double
+    -decayEnd : Double
+    -sustain : Double
+}
+
+class TanhEffect {
+    -drive : Double
+}
+
+class ClipEffect {
+    -threshold : Double
+}
+
+EffectDecorator <|-- VolumeEffect
+EffectDecorator <|-- ADSEffect
+EffectDecorator <|-- TanhEffect
+EffectDecorator <|-- ClipEffect
+
+ChannelSettings "1" *-- "1" AudioSource
+
+
+'========================
+' APPLICATION CLASSES
+'========================
+
+class SongParser {
+    +parse(filename : String) : AudioSettings
+}
+
+class Synthesizer {
+    +render(song : AudioSettings) : AudioBuffer
+}
+
+class AudioPlayer {
+    +play(buffer : AudioBuffer) : void
+}
+
+class AudioBuffer
+
+SongParser --> AudioSettings
+Synthesizer --> AudioSettings
+Synthesizer --> AudioBuffer
+AudioPlayer --> AudioBuffer
 
 @enduml
