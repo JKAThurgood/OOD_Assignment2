@@ -1,0 +1,102 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+
+struct AttackDecaySustain{
+    -attackEnd : Seconds
+    -decayEnd : Seconds
+}
+
+abstract class Wave {
+    -vol : int
+    -ads : AttackDecaySustain
+    -tanh : int
+    -clip : int
+
+}
+Wave "1" *-- "1" AttackDecaySustain
+
+class Sin{
+
+    +Sin(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
+}
+Wave <|.. Sin
+
+class Square{
+
+    +Square(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
+}
+Wave <|.. Square
+
+class Saw{
+
+    +Saw(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
+}
+Wave <|.. Saw
+
+class WhiteNoise{
+
+    +WhiteNoise(level: int, ads: AttackDecaySustain, drive: int, threshold: int)
+}
+Wave <|.. WhiteNoise
+
+enum Pitch {
+    A
+    ASharp
+    B
+    C
+    CSharp
+    D
+    DSharp
+    E
+    F
+    FSharp
+    G
+    GSharp
+}
+
+class Note {
+    +pitchClass : PitchClass
+    +octave : Int
+    +duration: number
+    --
+    +toString() : String
+    +fromString(value : String) : Note
+}
+Note "1" *-- "1" Pitch 
+
+class Measure{
+    +notes : Notes
+    --
+    +toString() : String
+    +fromString(value : String) : Measure
+    
+}
+
+Measure "1" *-- "1..*" Note 
+
+
+class ChannelSettings{
+    +settings:Wave
+    +measure: Measure[]
+    --
+    +toString() : String
+    +fromString(value : String) : ChannelSettings
+}
+
+ChannelSettings "1" *-- "1..*" Measure
+ChannelSettings "1" *-- "1" Wave
+
+class AudioSettings {
+    +channelSettings: ChannelSettings[]
+    +sampleRate: int
+    +beatsPerMeasure: int
+    +tempo
+    --
+    +toString() : String
+    +fromString(value : String) : AudioSettings
+}
+AudioSettings "1" *-- "1..*" ChannelSettings
+
+
+@enduml
