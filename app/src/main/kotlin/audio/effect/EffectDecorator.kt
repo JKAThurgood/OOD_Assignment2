@@ -1,5 +1,5 @@
 package audio.effect
 
-import audio.source.AudioSource
+import audio.core.AudioSource
 
 abstract class EffectDecorator(protected val source: AudioSource) : AudioSource

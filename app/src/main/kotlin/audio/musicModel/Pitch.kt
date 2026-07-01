@@ -1,4 +1,4 @@
-package audio.model
+package audio.musicModel
 
 enum class Pitch {
     A,

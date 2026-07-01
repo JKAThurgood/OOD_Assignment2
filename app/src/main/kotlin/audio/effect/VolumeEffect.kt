@@ -1,6 +1,6 @@
 package audio.effect
 
-import audio.source.AudioSource
+import audio.core.AudioSource
 
 class VolumeEffect(private val level: Double, source: AudioSource) : EffectDecorator(source) {
     override fun generateSample(time: Double, frequency: Double): Double {

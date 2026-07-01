@@ -1,25 +1,25 @@
-package audio.synth
+package audio.application
 
-import audio.model.AudioSettings
+import audio.musicModel.AudioSettings
 
 class Synthesizer {
     fun render(settings: AudioSettings): ShortArray {
         val secondsPerBeat = 60.0 / settings.tempo
         val samplesPerBeat = settings.sampleRate * secondsPerBeat
         val channelSamples =
-                settings.channels.map { channel ->
-                    val samples = mutableListOf<Double>()
-                    channel.measures.forEach { measure ->
-                        measure.notes.forEach { note ->
-                            val noteSamples = (note.duration * samplesPerBeat).toInt()
-                            for (i in 0 until noteSamples) {
-                                val time = i.toDouble() / settings.sampleRate
-                                samples += channel.source.generateSample(time, note.toFrequency())
-                            }
+            settings.channels.map { channel ->
+                val samples = mutableListOf<Double>()
+                channel.measures.forEach { measure ->
+                    measure.notes.forEach { note ->
+                        val noteSamples = (note.duration * samplesPerBeat).toInt()
+                        for (i in 0 until noteSamples) {
+                            val time = i.toDouble() / settings.sampleRate
+                            samples += channel.source.generateSample(time, note.toFrequency())
                         }
                     }
-                    samples.toDoubleArray()
                 }
+                samples.toDoubleArray()
+            }
 
         val maxLength = channelSamples.maxOfOrNull { it.size } ?: 0
         val mixed = ShortArray(maxLength)

@@ -1,6 +1,6 @@
-package audio.wave
+package audio.waveStrategy
 
-import audio.source.WaveStrategy
+import audio.core.WaveStrategy
 
 class SawWave : WaveStrategy {
     override fun generateSample(time: Double, frequency: Double): Double {

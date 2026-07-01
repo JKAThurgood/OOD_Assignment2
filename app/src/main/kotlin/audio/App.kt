@@ -3,9 +3,7 @@
  */
 package audio
 
-import audio.parser.SongParser
-import audio.player.AudioPlayer
-import audio.synth.Synthesizer
+import audio.application.*
 
 fun main(args: Array<String>) {
     if (args.isEmpty()) {

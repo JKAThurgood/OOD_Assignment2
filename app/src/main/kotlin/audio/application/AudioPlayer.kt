@@ -1,4 +1,4 @@
-package audio.player
+package audio.application
 
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem

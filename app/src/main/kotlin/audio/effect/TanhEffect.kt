@@ -1,6 +1,6 @@
 package audio.effect
 
-import audio.source.AudioSource
+import audio.core.AudioSource
 import kotlin.math.tanh
 
 class TanhEffect(private val drive: Double, source: AudioSource) : EffectDecorator(source) {

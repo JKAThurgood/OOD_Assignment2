@@ -1,6 +1,6 @@
-package audio.wave
+package audio.waveStrategy
 
-import audio.source.WaveStrategy
+import audio.core.WaveStrategy
 import kotlin.math.PI
 import kotlin.math.sin
 

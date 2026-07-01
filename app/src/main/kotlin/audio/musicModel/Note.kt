@@ -1,4 +1,4 @@
-package audio.model
+package audio.musicModel
 
 import kotlin.math.pow
 

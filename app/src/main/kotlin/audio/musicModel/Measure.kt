@@ -1,4 +1,4 @@
-package audio.model
+package audio.musicModel
 
 import audio.model.Note
 

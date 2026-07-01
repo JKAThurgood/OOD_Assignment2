@@ -1,20 +1,13 @@
-package audio.parser
+package audio.application
 
 import audio.effect.ADSEffect
 import audio.effect.ClipEffect
 import audio.effect.TanhEffect
 import audio.effect.VolumeEffect
-import audio.model.AudioSettings
-import audio.model.ChannelSettings
-import audio.model.Measure
-import audio.model.Note
-import audio.model.Pitch
-import audio.source.AudioSource
-import audio.source.WaveStrategy
-import audio.wave.SawWave
-import audio.wave.SinWave
-import audio.wave.SquareWave
-import audio.wave.WhiteNoiseWave
+import audio.musicModel.*
+import audio.core.AudioSource
+import audio.core.WaveStrategy
+import audio.waveStrategy.*
 import java.io.File
 
 class SongParser {

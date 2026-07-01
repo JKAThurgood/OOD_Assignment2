@@ -1,84 +1,85 @@
 @startuml
 
 skinparam classAttributeIconSize 0
-
-
-enum Pitch {
-    A
-    ASharp
-    B
-    C
-    CSharp
-    D
-    DSharp
-    E
-    F
-    FSharp
-    G
-    GSharp
-}
-
-class Note {
-    -pitch : Pitch
-    -octave : Int
-    -duration : Double
-    --
-    +toFrequency() : Double
-}
-
-Note "1" *-- "1" Pitch
-
-class Measure {
-    -notes : List<Note>
-}
-
-Measure "1" *-- "1..*" Note
-
-class ChannelSettings {
-    -source : AudioSource
-    -measures : List<Measure>
-}
-
-ChannelSettings "1" *-- "1..*" Measure
-
-class AudioSettings {
-    -channels : List<ChannelSettings>
-    -sampleRate : Int
-    -beatsPerMeasure : Int
-    -tempo : Int
-}
-
-AudioSettings "1" *-- "1..*" ChannelSettings
-
+top to bottom direction
 
 '========================
-' STRATEGY PATTERN
+' MUSIC MODEL
 '========================
 
-interface AudioSource {
-    +generateSample(time : Double, frequency : Double) : Double
+package "Music Model" {
+
+    enum Pitch {
+        A
+        ASharp
+        B
+        C
+        CSharp
+        D
+        DSharp
+        E
+        F
+        FSharp
+        G
+        GSharp
+    }
+
+    class Note {
+        -pitch : Pitch
+        -octave : Int
+        -duration : Double
+        --
+        +toFrequency() : Double
+    }
+
+    class Measure {
+        -notes : List<Note>
+    }
+
+    class ChannelSettings {
+        -source : AudioSource
+        -measures : List<Measure>
+    }
+
+    class AudioSettings {
+        -channels : List<ChannelSettings>
+        -sampleRate : Int
+        -beatsPerMeasure : Int
+        -tempo : Int
+    }
+
+    Note "1" *-- "1" Pitch
+    Measure "1" *-- "1..*" Note
+    ChannelSettings "1" *-- "1..*" Measure
+    AudioSettings "1" *-- "1..*" ChannelSettings
 }
 
-interface WaveStrategy {
-    +generateSample(time : Double, frequency : Double) : Double
+'========================
+' AUDIO CORE
+'========================
+
+package "Audio Core" {
+
+    interface AudioSource {
+        +generateSample(time : Double, frequency : Double) : Double
+    }
+
+    interface WaveStrategy {
+    }
+
+    AudioSource <|-- WaveStrategy
 }
 
-AudioSource *-- WaveStrategy
+'========================
+' WAVE GENERATORS
+'========================
 
-class SinWave {
-    +generateSample(time : Double, frequency : Double) : Double
-}
+package "Wave Strategies" {
 
-class SquareWave {
-    +generateSample(time : Double, frequency : Double) : Double
-}
-
-class SawWave {
-    +generateSample(time : Double, frequency : Double) : Double
-}
-
-class WhiteNoiseWave {
-    +generateSample(time : Double, frequency : Double) : Double
+    class SinWave
+    class SquareWave
+    class SawWave
+    class WhiteNoiseWave
 }
 
 WaveStrategy <|.. SinWave
@@ -86,62 +87,71 @@ WaveStrategy <|.. SquareWave
 WaveStrategy <|.. SawWave
 WaveStrategy <|.. WhiteNoiseWave
 
-
 '========================
-' DECORATOR PATTERN
-'========================
-
-abstract class EffectDecorator {
-    #source : AudioSource
-    --
-    +generateSample(time : Double, frequency : Double) : Double
-}
-
-AudioSource *-- EffectDecorator
-
-class VolumeEffect {
-    -level : Double
-}
-
-class ADSEffect {
-    -attackEnd : Double
-    -decayEnd : Double
-    -sustain : Double
-}
-
-class TanhEffect {
-    -drive : Double
-}
-
-class ClipEffect {
-    -threshold : Double
-}
-
-EffectDecorator <|-- VolumeEffect
-EffectDecorator <|-- ADSEffect
-EffectDecorator <|-- TanhEffect
-EffectDecorator <|-- ClipEffect
-
-ChannelSettings "1" *-- "1" AudioSource
-
-
-'========================
-' APPLICATION CLASSES
+' EFFECTS (DECORATOR)
 '========================
 
-class SongParser {
-    +parse(filename : String) : AudioSettings
+package "Effects" {
+
+    abstract class EffectDecorator {
+        #source : AudioSource
+        +generateSample(time : Double, frequency : Double) : Double
+    }
+
+    class VolumeEffect {
+        -level : Double
+    }
+
+    class ADSEffect {
+        -attackEnd : Double
+        -decayEnd : Double
+        -sustain : Double
+    }
+
+    class TanhEffect {
+        -drive : Double
+    }
+
+    class ClipEffect {
+        -threshold : Double
+    }
+
+    AudioSource <|-- EffectDecorator
+    AudioSource --* EffectDecorator
+
+
+    EffectDecorator <|-- VolumeEffect
+    EffectDecorator <|-- ADSEffect
+    EffectDecorator <|-- TanhEffect
+    EffectDecorator <|-- ClipEffect
 }
 
-class Synthesizer {
-    +render(song : AudioSettings) : AudioBuffer
-}
+'========================
+' PIPELINE CONNECTION
+'========================
 
-class AudioPlayer {
-    +play(buffer : AudioBuffer) : void
-}
+ChannelSettings --> AudioSource
 
-class AudioBuffer
+'========================
+' APPLICATION LAYER
+'========================
+
+package "Application" {
+
+    class SongParser {
+        +parse(filename : String) : AudioSettings
+    }
+
+    class Synthesizer {
+        +render(song : AudioSettings) : AudioBuffer
+    }
+
+    class AudioPlayer {
+        +play(buffer : AudioBuffer)
+    }
+
+    class AudioBuffer
+}
 
 SongParser --> AudioSettings
 Synthesizer --> AudioSettings

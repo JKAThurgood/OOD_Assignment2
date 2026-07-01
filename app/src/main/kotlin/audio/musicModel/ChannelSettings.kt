@@ -1,5 +1,5 @@
-package audio.model
+package audio.musicModel
 
-import audio.source.AudioSource
+import audio.core.AudioSource
 
 data class ChannelSettings(val source: AudioSource, val measures: List<Measure>)
