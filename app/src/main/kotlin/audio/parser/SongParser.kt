@@ -43,7 +43,7 @@ class SongParser {
                         "Header values must be integers: '$it'"
                     )
             }
-
+        // index + 2 because we dropped the header and base 0 addition
         val channels = lines.drop(1).mapIndexed { index, line -> parseChannel(line, index + 2) }
 
         if (channels.isEmpty()) {
@@ -55,7 +55,7 @@ class SongParser {
 
     private fun parseChannel(line: String, lineNumber: Int): ChannelSettings {
         val segments = line.split('|').map { it.trim() }
-        if (segments.isEmpty()) {
+        if (segments.isEmpty() || segments.size < 2) {
             throw IllegalArgumentException("Channel line $lineNumber is malformed")
         }
 
@@ -66,17 +66,21 @@ class SongParser {
 
         val waveform = parseWaveform(settingsTokens[0], lineNumber)
         val effects = settingsTokens.drop(1).map { parseEffect(it, lineNumber) }
-        val source =
-            effects.fold(waveform as AudioSource) { accumulated, effect -> effect(accumulated) }
+        val baseSource: AudioSource = waveform
 
-        val measures =
-            if (segments.size == 1) {
-                emptyList()
-            } else {
-                segments.drop(1).mapIndexed { measureIndex, measureText ->
-                    parseMeasure(measureText, lineNumber, measureIndex + 1)
-                }
-            }
+        var currentSource = baseSource
+
+        for (effect in effects) {
+            currentSource = effect(currentSource)
+        }
+
+        val source = currentSource
+        // Done with settings
+        val measureTexts = segments.drop(1)
+
+        val measures = measureTexts.mapIndexed { index, text ->
+            parseMeasure(text, lineNumber, index + 1)
+        }
 
         return ChannelSettings(source, measures)
     }
@@ -171,60 +175,63 @@ class SongParser {
             )
         }
 
-        val notes =
-            tokens.chunked(2).mapIndexed { index, pair ->
-                val noteToken = pair[0]
-                val durationToken = pair[1]
-                val note = parseNote(noteToken, lineNumber, measureNumber, index + 1)
-                val duration =
-                    durationToken.toDoubleOrNull()
-                        ?: throw IllegalArgumentException(
-                            "Duration '$durationToken' is not a number in measure $measureNumber on line $lineNumber"
-                        )
-                note.copy(duration = duration)
-            }
+        val notes = tokens.chunked(2).mapIndexed { index, pair ->
+            parseNote(
+                noteToken = pair[0],
+                durationToken = pair[1],
+                lineNumber = lineNumber,
+                measureNumber = measureNumber,
+                pairIndex = index + 1
+            )
+        }
 
         return Measure(notes)
     }
 
     private fun parseNote(
-        token: String,
+        noteToken: String,
+        durationToken: String,
         lineNumber: Int,
         measureNumber: Int,
         pairIndex: Int
     ): Note {
+        val duration = durationToken.toDoubleOrNull()
+            ?: throw IllegalArgumentException(
+                "Duration '$durationToken' is not a number in measure $measureNumber on line $lineNumber"
+            )
+
         val regex = Regex("^([A-G](?:#|b)?)(\\d+)")
-        val match = regex.find(token) ?: throw IllegalArgumentException(
-            "Invalid note '$token' in measure $measureNumber on line $lineNumber"
-        )
+        val match = regex.find(noteToken)
+            ?: throw IllegalArgumentException(
+                "Invalid note '$noteToken' in measure $measureNumber on line $lineNumber"
+            )
 
         val pitchToken = match.groupValues[1]
         val octave = match.groupValues[2].toInt()
-        val pitch =
-            when (pitchToken) {
-                "A" -> Pitch.A
-                "A#" -> Pitch.ASharp
-                "Ab" -> Pitch.AFlat
-                "B" -> Pitch.B
-                "Bb" -> Pitch.BFlat
-                "C" -> Pitch.C
-                "C#" -> Pitch.CSharp
-                "D" -> Pitch.D
-                "D#" -> Pitch.DSharp
-                "Db" -> Pitch.DFlat
-                "E" -> Pitch.E
-                "Eb" -> Pitch.EFlat
-                "F" -> Pitch.F
-                "F#" -> Pitch.FSharp
-                "G" -> Pitch.G
-                "G#" -> Pitch.GSharp
-                "Gb" -> Pitch.GFlat
-                else ->
-                    throw IllegalArgumentException(
-                        "Unknown pitch '$pitchToken' in measure $measureNumber on line $lineNumber"
-                    )
-            }
 
-        return Note(pitch, octave, 0.0)
+        val pitch = when (pitchToken) {
+            "A" -> Pitch.A
+            "A#" -> Pitch.ASharp
+            "Ab" -> Pitch.AFlat
+            "B" -> Pitch.B
+            "Bb" -> Pitch.BFlat
+            "C" -> Pitch.C
+            "C#" -> Pitch.CSharp
+            "D" -> Pitch.D
+            "D#" -> Pitch.DSharp
+            "Db" -> Pitch.DFlat
+            "E" -> Pitch.E
+            "Eb" -> Pitch.EFlat
+            "F" -> Pitch.F
+            "F#" -> Pitch.FSharp
+            "G" -> Pitch.G
+            "G#" -> Pitch.GSharp
+            "Gb" -> Pitch.GFlat
+            else -> throw IllegalArgumentException(
+                "Unknown pitch '$pitchToken' in measure $measureNumber on line $lineNumber"
+            )
+        }
+
+        return Note(pitch, octave, duration)
     }
 }

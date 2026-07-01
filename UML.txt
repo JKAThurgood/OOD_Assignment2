@@ -63,7 +63,7 @@ interface WaveStrategy {
     +generateSample(time : Double, frequency : Double) : Double
 }
 
-AudioSource <|-- WaveStrategy
+AudioSource *-- WaveStrategy
 
 class SinWave {
     +generateSample(time : Double, frequency : Double) : Double
@@ -97,8 +97,7 @@ abstract class EffectDecorator {
     +generateSample(time : Double, frequency : Double) : Double
 }
 
-AudioSource <|.. EffectDecorator
-EffectDecorator *-- AudioSource
+AudioSource *-- EffectDecorator
 
 class VolumeEffect {
     -level : Double
