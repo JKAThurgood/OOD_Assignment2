@@ -54,25 +54,13 @@ package "Music Model" {
     AudioSettings "1" *-- "1..*" ChannelSettings
 }
 
-'========================
-' AUDIO CORE
-'========================
-
 package "Audio Core" {
 
     interface AudioSource {
         +generateSample(time : Double, frequency : Double) : Double
     }
-
-    interface WaveStrategy {
-    }
-
-    AudioSource <|-- WaveStrategy
 }
 
-'========================
-' WAVE GENERATORS
-'========================
 
 package "Wave Strategies" {
 
@@ -82,10 +70,10 @@ package "Wave Strategies" {
     class WhiteNoiseWave
 }
 
-WaveStrategy <|.. SinWave
-WaveStrategy <|.. SquareWave
-WaveStrategy <|.. SawWave
-WaveStrategy <|.. WhiteNoiseWave
+AudioSource <|-- SinWave
+AudioSource <|-- SquareWave
+AudioSource <|-- SawWave
+AudioSource <|-- WhiteNoiseWave
 
 '========================
 ' EFFECTS (DECORATOR)

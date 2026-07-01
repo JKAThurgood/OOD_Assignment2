@@ -6,7 +6,6 @@ import audio.effect.TanhEffect
 import audio.effect.VolumeEffect
 import audio.musicModel.*
 import audio.core.AudioSource
-import audio.core.WaveStrategy
 import audio.waveStrategy.*
 import java.io.File
 
@@ -78,7 +77,7 @@ class SongParser {
         return ChannelSettings(source, measures)
     }
 
-    private fun parseWaveform(token: String, lineNumber: Int): WaveStrategy {
+    private fun parseWaveform(token: String, lineNumber: Int): AudioSource {
         return when (token.lowercase()) {
             "sine" -> SinWave()
             "square" -> SquareWave()
