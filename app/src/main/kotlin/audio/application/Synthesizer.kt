@@ -12,7 +12,7 @@ class Synthesizer {
             settings.channels.map { channel ->
                 val samples = mutableListOf<Double>()
                 channel.measures.forEach { measure ->
-                    measure.notes.forEach { event ->
+                    measure.events.forEach { event ->
                         val eventSamples = (event.duration * samplesPerBeat).toInt()
 
                         when (event) {

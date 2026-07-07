@@ -208,30 +208,7 @@ class SongParser {
         val pitchToken = match.groupValues[1]
         val octave = match.groupValues[2].toInt()
 
-        val pitch = when (pitchToken) {
-            "A" -> Pitch.A
-            "A#" -> Pitch.ASharp
-            "Ab" -> Pitch.AFlat
-            "B" -> Pitch.B
-            "Bb" -> Pitch.BFlat
-            "C" -> Pitch.C
-            "C#" -> Pitch.CSharp
-            "Cb" -> Pitch.CFlat
-            "D" -> Pitch.D
-            "D#" -> Pitch.DSharp
-            "Db" -> Pitch.DFlat
-            "E" -> Pitch.E
-            "Eb" -> Pitch.EFlat
-            "F" -> Pitch.F
-            "F#" -> Pitch.FSharp
-            "Fb" -> Pitch.FFlat
-            "G" -> Pitch.G
-            "G#" -> Pitch.GSharp
-            "Gb" -> Pitch.GFlat
-            else -> throw IllegalArgumentException(
-                "Unknown pitch '$pitchToken' in measure $measureNumber on line $lineNumber"
-            )
-        }
+        val pitch = Pitch.fromString(pitchToken)
 
         return Note(pitch, octave, duration)
     }
