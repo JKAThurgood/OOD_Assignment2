@@ -12,6 +12,7 @@ package "Music Model" {
     enum Pitch {
         A
         ASharp
+        AFlat
         B
         BFlat
         C
@@ -28,6 +29,9 @@ package "Music Model" {
         G
         GSharp
         GFlat
+        --
+        -semitoneOffset : Int
+        +fromString(value : String) : Pitch
     }
 
     interface MusicEvent {
@@ -37,6 +41,7 @@ package "Music Model" {
     class Note {
         -pitch : Pitch
         -octave : Int
+        -duration : Double
         --
         +toFrequency() : Double
     }
