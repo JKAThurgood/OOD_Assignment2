@@ -13,27 +13,39 @@ package "Music Model" {
         A
         ASharp
         B
+        BFlat
         C
         CSharp
+        CFlat
         D
         DSharp
+        DFlat
         E
+        EFlat
         F
         FSharp
+        FFlat
         G
         GSharp
+        GFlat
+    }
+
+    interface MusicEvent {
+        +duration : Double
     }
 
     class Note {
         -pitch : Pitch
         -octave : Int
-        -duration : Double
         --
         +toFrequency() : Double
     }
 
+    class Rest {
+    }
+
     class Measure {
-        -notes : List<Note>
+        -notes : List<MusicEvent>
     }
 
     class ChannelSettings {
@@ -48,8 +60,11 @@ package "Music Model" {
         -tempo : Int
     }
 
+    MusicEvent <|.. Note
+    MusicEvent <|.. Rest
+
     Note "1" *-- "1" Pitch
-    Measure "1" *-- "1..*" Note
+    Measure "1" *-- "1..*" MusicEvent
     ChannelSettings "1" *-- "1..*" Measure
     AudioSettings "1" *-- "1..*" ChannelSettings
 }
@@ -74,6 +89,7 @@ AudioSource <|-- SinWave
 AudioSource <|-- SquareWave
 AudioSource <|-- SawWave
 AudioSource <|-- WhiteNoiseWave
+
 
 '========================
 ' EFFECTS (DECORATOR)
@@ -107,18 +123,19 @@ package "Effects" {
     AudioSource <|-- EffectDecorator
     AudioSource --* EffectDecorator
 
-
     EffectDecorator <|-- VolumeEffect
     EffectDecorator <|-- ADSEffect
     EffectDecorator <|-- TanhEffect
     EffectDecorator <|-- ClipEffect
 }
 
+
 '========================
 ' PIPELINE CONNECTION
 '========================
 
 ChannelSettings --> AudioSource
+
 
 '========================
 ' APPLICATION LAYER

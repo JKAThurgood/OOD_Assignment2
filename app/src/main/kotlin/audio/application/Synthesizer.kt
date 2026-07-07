@@ -1,6 +1,8 @@
 package audio.application
 
 import audio.musicModel.AudioSettings
+import audio.musicModel.Note
+import audio.musicModel.Rest
 
 class Synthesizer {
     fun render(settings: AudioSettings): ShortArray {
@@ -10,17 +12,31 @@ class Synthesizer {
             settings.channels.map { channel ->
                 val samples = mutableListOf<Double>()
                 channel.measures.forEach { measure ->
-                    measure.notes.forEach { note ->
-                        val noteSamples = (note.duration * samplesPerBeat).toInt()
-                        for (i in 0 until noteSamples) {
-                            val time = i.toDouble() / settings.sampleRate
-                            samples += channel.source.generateSample(time, note.toFrequency())
+                    measure.notes.forEach { event ->
+                        val eventSamples = (event.duration * samplesPerBeat).toInt()
+
+                        when (event) {
+                            is Note -> {
+                                for (i in 0 until eventSamples) {
+                                    val time = i.toDouble() / settings.sampleRate
+                                    samples += channel.source.generateSample(
+                                        time,
+                                        event.toFrequency()
+                                    )
+                                }
+                            }
+
+                            is Rest -> {
+                                repeat(eventSamples) {
+                                    samples += 0.0
+                                }
+                            }
                         }
                     }
                 }
+
                 samples.toDoubleArray()
             }
-
         val maxLength = channelSamples.maxOfOrNull { it.size } ?: 0
         val mixed = ShortArray(maxLength)
 

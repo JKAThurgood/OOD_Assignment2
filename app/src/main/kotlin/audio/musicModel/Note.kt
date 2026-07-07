@@ -2,12 +2,12 @@ package audio.musicModel
 
 import kotlin.math.pow
 
-data class Note(val pitch: Pitch, val octave: Int, val duration: Double) {
+data class Note(
+    val pitch: Pitch,
+    val octave: Int,
+    override val duration: Double
+) : MusicalEvent {
     fun toFrequency(): Double {
-        if (pitch == Pitch.Rest) {
-            return 0.0
-        }
-
         val semitoneOffset =
             when (pitch) {
                 Pitch.C -> 0
@@ -30,9 +30,11 @@ data class Note(val pitch: Pitch, val octave: Int, val duration: Double) {
                 Pitch.B -> 11
                 Pitch.BFlat -> 10
             }
+
         val noteNumber = octave * 12 + semitoneOffset
         val a4Number = 4 * 12 + 9
         val semitoneDifference = noteNumber - a4Number
+
         return 440.0 * 2.0.pow(semitoneDifference / 12.0)
     }
 }

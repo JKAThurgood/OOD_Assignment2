@@ -186,7 +186,7 @@ class SongParser {
         lineNumber: Int,
         measureNumber: Int,
         pairIndex: Int
-    ): Note {
+    ): MusicalEvent {
         val duration = durationToken.toDoubleOrNull()
             ?: throw IllegalArgumentException(
                 "Duration '$durationToken' is not a number in measure $measureNumber on line $lineNumber"
@@ -194,10 +194,8 @@ class SongParser {
 
         // Handle rests
         if (noteToken == "-") {
-            return Note(
-                pitch = Pitch.Rest,
-                octave = 0,
-                duration = duration
+            return Rest(
+                duration
             )
         }
 

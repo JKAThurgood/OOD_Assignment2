@@ -19,6 +19,5 @@ enum class Pitch {
     FSharp,
     G,
     GFlat,
-    GSharp,
-    Rest
+    GSharp
 }
