@@ -4,10 +4,15 @@ import kotlin.math.pow
 
 data class Note(val pitch: Pitch, val octave: Int, val duration: Double) {
     fun toFrequency(): Double {
+        if (pitch == Pitch.Rest) {
+            return 0.0
+        }
+
         val semitoneOffset =
             when (pitch) {
                 Pitch.C -> 0
                 Pitch.CSharp -> 1
+                Pitch.CFlat -> -1
                 Pitch.D -> 2
                 Pitch.DSharp -> 3
                 Pitch.DFlat -> 1
@@ -15,6 +20,7 @@ data class Note(val pitch: Pitch, val octave: Int, val duration: Double) {
                 Pitch.EFlat -> 3
                 Pitch.F -> 5
                 Pitch.FSharp -> 6
+                Pitch.FFlat -> 4
                 Pitch.G -> 7
                 Pitch.GSharp -> 8
                 Pitch.GFlat -> 6

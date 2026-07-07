@@ -79,10 +79,10 @@ class SongParser {
 
     private fun parseWaveform(token: String, lineNumber: Int): AudioSource {
         return when (token.lowercase()) {
-            "sine" -> SinWave()
+            "sin" -> SinWave()
             "square" -> SquareWave()
             "saw" -> SawWave()
-            "noise" -> WhiteNoiseWave()
+            "whitenoise" -> WhiteNoiseWave()
             else -> throw IllegalArgumentException("Unknown waveform '$token' on line $lineNumber")
         }
     }
@@ -90,7 +90,7 @@ class SongParser {
     private fun parseEffect(token: String, lineNumber: Int): (AudioSource) -> AudioSource {
         val parts = token.split('$')
         return when (parts[0].lowercase()) {
-            "volume" -> {
+            "vol" -> {
                 if (parts.size != 2)
                     throw IllegalArgumentException(
                         "Volume effect must include one argument on line $lineNumber"
@@ -192,7 +192,16 @@ class SongParser {
                 "Duration '$durationToken' is not a number in measure $measureNumber on line $lineNumber"
             )
 
-        val regex = Regex("^([A-G](?:#|b)?)(\\d+)")
+        // Handle rests
+        if (noteToken == "-") {
+            return Note(
+                pitch = Pitch.Rest,
+                octave = 0,
+                duration = duration
+            )
+        }
+
+        val regex = Regex("^([A-G](?:#|b)?)(\\d+)$")
         val match = regex.find(noteToken)
             ?: throw IllegalArgumentException(
                 "Invalid note '$noteToken' in measure $measureNumber on line $lineNumber"
@@ -209,6 +218,7 @@ class SongParser {
             "Bb" -> Pitch.BFlat
             "C" -> Pitch.C
             "C#" -> Pitch.CSharp
+            "Cb" -> Pitch.CFlat
             "D" -> Pitch.D
             "D#" -> Pitch.DSharp
             "Db" -> Pitch.DFlat
@@ -216,6 +226,7 @@ class SongParser {
             "Eb" -> Pitch.EFlat
             "F" -> Pitch.F
             "F#" -> Pitch.FSharp
+            "Fb" -> Pitch.FFlat
             "G" -> Pitch.G
             "G#" -> Pitch.GSharp
             "Gb" -> Pitch.GFlat

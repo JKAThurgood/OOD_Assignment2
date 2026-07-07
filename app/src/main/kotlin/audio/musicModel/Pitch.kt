@@ -2,20 +2,23 @@ package audio.musicModel
 
 enum class Pitch {
     A,
-    ASharp,
     AFlat,
+    ASharp,
     B,
     BFlat,
     C,
+    CFlat,
     CSharp,
     D,
-    DSharp,
     DFlat,
+    DSharp,
     E,
     EFlat,
     F,
+    FFlat,
     FSharp,
     G,
+    GFlat,
     GSharp,
-    GFlat
+    Rest
 }
