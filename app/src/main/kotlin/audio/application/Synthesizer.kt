@@ -4,6 +4,7 @@ import audio.musicModel.AudioSettings
 import audio.musicModel.ChannelSettings
 import audio.musicModel.Note
 import audio.musicModel.Rest
+import kotlin.math.roundToInt
 
 class Synthesizer {
 
@@ -31,16 +32,28 @@ class Synthesizer {
         channel: ChannelSettings,
         settings: AudioSettings
     ): DoubleArray {
+
         val secondsPerBeat = 60.0 / settings.tempo
         val samplesPerBeat = settings.sampleRate * secondsPerBeat
 
         val samples = mutableListOf<Double>()
 
+        var currentSample = 0.0
+
         channel.measures.forEach { measure ->
             measure.events.forEach { event ->
 
+                val nextSample =
+                    currentSample + event.duration * samplesPerBeat
+
+                val startIndex =
+                    currentSample.roundToInt()
+
+                val endIndex =
+                    nextSample.roundToInt()
+
                 val eventSamples =
-                    (event.duration * samplesPerBeat).toInt()
+                    endIndex - startIndex
 
                 when (event) {
                     is Note -> {
@@ -63,6 +76,8 @@ class Synthesizer {
                         }
                     }
                 }
+
+                currentSample = nextSample
             }
         }
 

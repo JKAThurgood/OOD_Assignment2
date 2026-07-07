@@ -229,4 +229,31 @@ class SynthesizerTest {
             synthesizer.render(settings)
         }
     }
+
+    @Test
+    fun `fractional durations do not accumulate timing error`() {
+        val settings = AudioSettings(
+            channels = listOf(
+                ChannelSettings(
+                    ConstantSource(0.0),
+                    listOf(
+                        Measure(
+                            listOf(
+                                Rest(0.333),
+                                Rest(0.333),
+                                Rest(0.333)
+                            )
+                        )
+                    )
+                )
+            ),
+            sampleRate = 10,
+            beatsPerMeasure = 4,
+            tempo = 60
+        )
+
+        val result = synthesizer.render(settings)
+
+        assertEquals(10, result.size)
+    }
 }

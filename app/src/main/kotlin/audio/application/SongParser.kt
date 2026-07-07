@@ -159,15 +159,26 @@ class SongParser {
         }
     }
 
-    private fun parseMeasure(text: String, lineNumber: Int, measureNumber: Int): Measure {
+    private fun parseMeasure(
+        text: String,
+        lineNumber: Int,
+        measureNumber: Int
+    ): Measure {
         val tokens = text.split(' ').filter { it.isNotBlank() }
+
+        if (tokens.isEmpty()) {
+            throw IllegalArgumentException(
+                "Measure $measureNumber on line $lineNumber cannot be empty"
+            )
+        }
+
         if (tokens.size % 2 != 0) {
             throw IllegalArgumentException(
                 "Measure $measureNumber on line $lineNumber must contain note/duration pairs"
             )
         }
 
-        val notes = tokens.chunked(2).mapIndexed { index, pair ->
+        val events = tokens.chunked(2).mapIndexed { index, pair ->
             parseNote(
                 noteToken = pair[0],
                 durationToken = pair[1],
@@ -177,7 +188,7 @@ class SongParser {
             )
         }
 
-        return Measure(notes)
+        return Measure(events)
     }
 
     private fun parseNote(
@@ -191,6 +202,12 @@ class SongParser {
             ?: throw IllegalArgumentException(
                 "Duration '$durationToken' is not a number in measure $measureNumber on line $lineNumber"
             )
+
+        if (duration <= 0.0) {
+            throw IllegalArgumentException(
+                "Duration must be greater than zero in measure $measureNumber on line $lineNumber"
+            )
+        }
 
         // Handle rests
         if (noteToken == "-") {

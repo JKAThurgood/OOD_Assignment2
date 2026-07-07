@@ -562,4 +562,46 @@ class SongParserTest {
 
         assertEquals(2, events.size)
     }
+
+    @Test
+    fun `throws when measure is empty`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 1 |
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when duration is negative`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 -1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when duration is zero`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 0
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
 }
