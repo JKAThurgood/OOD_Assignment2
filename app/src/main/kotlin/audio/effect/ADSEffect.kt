@@ -12,10 +12,17 @@ class ADSEffect(
         val raw = source.generateSample(time, frequency)
         val envelope =
             when {
-                time <= attackEnd -> if (attackEnd <= 0.0) 1.0 else time / attackEnd
+                attackEnd in time..0.0 -> 1.0
+
+                time < attackEnd ->
+                    time / attackEnd
+
+                decayEnd <= 0.0 ->
+                    sustain
+
                 time <= attackEnd + decayEnd -> {
                     val decayTime = time - attackEnd
-                    val decayFraction = if (decayEnd <= 0.0) 1.0 else decayTime / decayEnd
+                    val decayFraction = decayTime / decayEnd
                     1.0 - (1.0 - sustain) * decayFraction
                 }
 

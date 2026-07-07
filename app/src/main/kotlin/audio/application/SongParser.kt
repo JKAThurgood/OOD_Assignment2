@@ -47,7 +47,7 @@ class SongParser {
 
     private fun parseChannel(line: String, lineNumber: Int): ChannelSettings {
         val segments = line.split('|').map { it.trim() }
-        if (segments.isEmpty() || segments.size < 2) {
+        if (segments.size < 2) {
             throw IllegalArgumentException("Channel line $lineNumber is malformed")
         }
 

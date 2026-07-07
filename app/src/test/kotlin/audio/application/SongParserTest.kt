@@ -160,4 +160,406 @@ class SongParserTest {
             settings.channels[0].source is ClipEffect
         )
     }
+
+    @Test
+    fun `parses multiple channels`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 1
+        square | G4 2
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        assertEquals(2, settings.channels.size)
+
+        assertTrue(settings.channels[0].source is SinWave)
+        assertTrue(settings.channels[1].source is SquareWave)
+    }
+
+
+    @Test
+    fun `parses multiple measures`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 1 | D4 2
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        val measures = settings.channels[0].measures
+
+        assertEquals(2, measures.size)
+        assertEquals(Pitch.C, (measures[0].events[0] as Note).pitch)
+        assertEquals(Pitch.D, (measures[1].events[0] as Note).pitch)
+    }
+
+
+    @Test
+    fun `parses flats and sharps`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C#4 1 Db4 1 Eb4 1
+        """.trimIndent()
+        )
+
+        val events = parser.parse(file.path)
+            .channels[0]
+            .measures[0]
+            .events
+
+        assertEquals(Pitch.CSharp, (events[0] as Note).pitch)
+        assertEquals(Pitch.DFlat, (events[1] as Note).pitch)
+        assertEquals(Pitch.EFlat, (events[2] as Note).pitch)
+    }
+
+
+    @Test
+    fun `parses all effects`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin vol$0.5 ads$0.1$0.2$0.7 tanh$2 clip$0.8 | C4 1
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        val source = settings.channels[0].source
+
+        // Effects are wrapped, so verify the outermost layer
+        assertTrue(source is ClipEffect)
+    }
+
+
+    @Test
+    fun `throws when file is empty`() {
+        val file = createTempSong("")
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when header contains non numeric values`() {
+        val file = createTempSong(
+            """
+        abc 4 120
+        sin | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when waveform is unknown`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        triangle | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when note is invalid`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | H4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when duration is invalid`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4 abc
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when effect argument is missing`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin vol | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when effect value is invalid`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin vol${'$'}abc | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when ADS has wrong argument count`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin ads${'$'}0.1${'$'}0.2 | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when ADS value is invalid`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin ads${'$'}bad${'$'}0.2${'$'}0.5 | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when tanh has missing value`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin tanh | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when tanh value is invalid`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin tanh${'$'}abc | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when clip has missing value`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin clip | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when ADS decayEnd is not a number`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin ads${'$'}0.1${'$'}bad${'$'}0.5 | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when ADS sustain is not a number`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin ads${'$'}0.1${'$'}0.2${'$'}bad | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when clip threshold is not a number`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin clip${'$'}bad | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+
+    @Test
+    fun `throws when effect type is unknown`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin reverb${'$'}0.5 | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when channel line is malformed`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when channel has no waveform`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        | C4 1
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `throws when input contains only header`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        """.trimIndent()
+        )
+
+        assertThrows<IllegalArgumentException> {
+            parser.parse(file.path)
+        }
+    }
+
+    @Test
+    fun `ignores empty and whitespace lines`() {
+        val file = createTempSong(
+            """
+        
+        
+        44100 4 120
+        
+        sin | C4 1
+        
+        
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        assertEquals(1, settings.channels.size)
+    }
+
+    @Test
+    fun `header ignores extra whitespace`() {
+        val file = createTempSong(
+            """
+        44100     4      120
+        sin | C4 1
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        assertEquals(44100, settings.sampleRate)
+        assertEquals(4, settings.beatsPerMeasure)
+        assertEquals(120, settings.tempo)
+    }
+
+    @Test
+    fun `measure ignores extra whitespace between notes`() {
+        val file = createTempSong(
+            """
+        44100 4 120
+        sin | C4    1      D4     2
+        """.trimIndent()
+        )
+
+        val settings = parser.parse(file.path)
+
+        val events = settings.channels[0]
+            .measures[0]
+            .events
+
+        assertEquals(2, events.size)
+    }
 }
