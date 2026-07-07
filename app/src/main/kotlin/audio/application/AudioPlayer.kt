@@ -10,19 +10,27 @@ class AudioPlayer {
         val format = AudioFormat(sampleRate.toFloat(), 16, 1, true, false)
         val info = DataLine.Info(SourceDataLine::class.java, format)
         val line = AudioSystem.getLine(info) as SourceDataLine
+
         line.open(format)
         line.start()
 
-        val byteBuffer = ByteArray(buffer.size * 2)
-        var index = 0
-        for (sample in buffer) {
-            byteBuffer[index++] = (sample.toInt() and 0xff).toByte()
-            byteBuffer[index++] = ((sample.toInt() shr 8) and 0xff).toByte()
-        }
+        val byteBuffer = toByteArray(buffer)
 
         line.write(byteBuffer, 0, byteBuffer.size)
         line.drain()
         line.stop()
         line.close()
+    }
+
+    internal fun toByteArray(buffer: ShortArray): ByteArray {
+        val byteBuffer = ByteArray(buffer.size * 2)
+        var index = 0
+
+        for (sample in buffer) {
+            byteBuffer[index++] = (sample.toInt() and 0xff).toByte()
+            byteBuffer[index++] = ((sample.toInt() shr 8) and 0xff).toByte()
+        }
+
+        return byteBuffer
     }
 }
