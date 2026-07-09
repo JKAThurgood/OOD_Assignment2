@@ -67,8 +67,14 @@ class SongParser {
         }
 
         val source = currentSource
+
         // Done with settings
-        val measureTexts = segments.drop(1)
+        val measureTexts = segments.drop(1).toMutableList()
+
+        // Allow a trailing '|'
+        if (measureTexts.lastOrNull()?.isBlank() == true) {
+            measureTexts.removeLast()
+        }
 
         val measures = measureTexts.mapIndexed { index, text ->
             parseMeasure(text, lineNumber, index + 1)

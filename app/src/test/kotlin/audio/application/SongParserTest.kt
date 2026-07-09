@@ -568,7 +568,7 @@ class SongParserTest {
         val file = createTempSong(
             """
         44100 4 120
-        sin | C4 1 |
+        sin | C4 1 | |
         """.trimIndent()
         )
 
